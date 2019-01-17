@@ -1,7 +1,0 @@
-{"message":"Hello again distributed logs","level":"info"}
-undefined [undefined] info: Hello again distributed logs
-2019-01-16T15:06:41.554Z [right meow!] info: Hello again distributed logs
-2019-01-16T15:07:12.813Z info: Hello again distributed logs
-2019-01-16T15:14:11.568Z info: /news
-2019-01-16T15:14:50.723Z info: /news
-2019-01-16T15:14:53.220Z info: /
