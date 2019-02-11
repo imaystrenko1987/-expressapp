@@ -9,8 +9,11 @@ module.exports = function(app, passport, logger) {
 		res.redirect('/news');
 	});
 
-	app.get('/login', function(req, res) {
-		res.render('login.ejs', { message: req.flash('loginMessage') });
+	app.get('/auth/facebook', passport.authenticate('facebook'));
+ 
+	app.get('/auth/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/login' }),
+	function(req, res) {
+		res.redirect('/');
 	});
 
 	app.post('/login', passport.authenticate('local-login', {
@@ -18,10 +21,6 @@ module.exports = function(app, passport, logger) {
 		failureRedirect : '/login',
 		failureFlash : true
 	}));
-
-	app.get('/signup', function(req, res) {
-		res.render('signup.ejs', { message: req.flash('signupMessage') });
-	});
 
 	app.post('/signup', passport.authenticate('local-signup', {
 		successRedirect : '/',
@@ -55,11 +54,10 @@ module.exports = function(app, passport, logger) {
 		 });
 	 });
 	 
-	 app.post('/news', function (req, res) {
+	 app.post('/news', isLoggedIn, function (req, res) {
 		logger.info(getFullUrl(req));
 		logger.info(req.body.author);
-		isLoggedIn(req, res, function(){
-			News.create({
+		News.create({
 			author: req.body.author,
 			title: req.body.title,
 			description: req.body.description,
@@ -75,15 +73,13 @@ module.exports = function(app, passport, logger) {
 				}
 					res.json(articles);
 				});
-			});
 		});
 	 });
 	 
-	 app.put('/news/:id', function (req, res) {
+	 app.put('/news/:id', isLoggedIn, function (req, res) {
 		logger.info(getFullUrl(req));
 		let id = req.params.id;
-		isLoggedIn(req, res, function(){
-			var data = {
+		var data = {
 			author: req.body.author,
 			title: req.body.title,
 			description: req.body.description,
@@ -96,7 +92,6 @@ module.exports = function(app, passport, logger) {
 			throw err;
 		
 			res.send('Successfully! Article updated - ' + news.title);
-			});
 		});
 	 });
 	 
@@ -125,5 +120,5 @@ function isLoggedIn(req, res, next) {
 	if (req.isAuthenticated())
 		return next();
 
-	res.redirect('/');
+	res.redirect('/login');
 }

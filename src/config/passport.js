@@ -1,5 +1,7 @@
-var LocalStrategy = require('passport-local').Strategy;
-var User = require('../app/models/user');
+const LocalStrategy = require('passport-local').Strategy;
+const FacebookStrategy = require('passport-facebook').Strategy;
+const config = require('./config');
+const User = require('../app/models/user');
 
 module.exports = function(passport) {
     passport.serializeUser(function(user, done) {
@@ -46,7 +48,6 @@ module.exports = function(passport) {
         passReqToCallback : true
     },
     function(req, email, password, done) {
-        debugger;
         User.findOne({ 'local.email': email }, function(err, user) {
             if (err)
                 return done(err);
@@ -64,5 +65,17 @@ module.exports = function(passport) {
         });
 
     }));
+
+    passport.use(new FacebookStrategy({
+        clientID: config.facebook_api_key,
+        clientSecret:config.facebook_api_secret ,
+        callbackURL: config.callback_url
+      },
+      function(accessToken, refreshToken, profile, done) {
+        process.nextTick(function () {
+          return done(null, profile);
+        });
+      }
+    ));
 
 };
