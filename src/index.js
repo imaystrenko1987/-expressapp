@@ -9,7 +9,7 @@ const session = require('express-session')
 const MongoStore = require('connect-mongo')(session);
 const configDB = require('./config/database.js');
 const winston = require('winston');
-const { format } = winston;
+const { format, loggers } = winston;
 const { combine, timestamp, printf } = format;
 require('./config/passport')(passport);
 
@@ -29,6 +29,7 @@ const logger = winston.createLogger({
     new winston.transports.File({ filename: './src/app.log' })
   ]
 });
+loggers.add('logger', logger);
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -57,3 +58,5 @@ require('./app/routes.js')(app, passport, logger);
 let server = app.listen(port, function () {
     console.log("Listening at http://%s:%s", server.address().address, port)
  });
+
+ module.exports = app;

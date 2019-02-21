@@ -1,13 +1,8 @@
 const News = require('./models/news');
-
+const { getRoot, getNews, getNewsById, postNews, putNews, deleteNews, otherPages } = require('../app/routes-handlers');
 module.exports = function (app, passport, logger) {
-	const getFullUrl = (req) => {
-		return `${req.method}: ${req.protocol}://${req.get('host')}${req.originalUrl}`;
-	};
 
-	app.get('/', function (req, res) {
-		res.redirect('/news');
-	});
+	app.get('/', getRoot);
 
 	app.get('/auth/facebook', passport.authenticate('facebook'));
 
@@ -33,113 +28,17 @@ module.exports = function (app, passport, logger) {
 		res.redirect('/');
 	});
 
-	app.get('/news', function (req, res) {
-		logger.info(getFullUrl(req));
-		var search = {};
-		if (req.query.source) {
-			search.source = req.query.source;
-		}
-		if (req.query.sourceUrl) {
-			search.author = req.query.sourceUrl;
-		}
-		var searchText = req.query.heading;
-		if (searchText) {
-			search.$or = [ 
-				{ heading: {$regex : searchText} }, 
-				{ shortDescription: {$regex : searchText} }, 
-				{ content: {$regex : searchText} } ];
-		}
-		if (req.query.author) {
-			search.author = req.query.author;
-		}
+	app.get('/news', getNews);
 
-		News.find(search, function (err, articles) {
-			if (err) {
-				res.send(err);
-			}
-			res.json(articles);
-		});
-	});
+	app.get('/news/:id', getNewsById);
 
-	app.get('/news/:id', function (req, res) {
-		logger.info(getFullUrl(req));
-		let id = req.params.id;
-		News.findById(id, function (err, news) {
-			if (err) {
-				res.send(err);
-			}
-			res.json(news);
-		});
-	});
+	app.post('/news', postNews);
 
-	app.post('/news', function (req, res) {
-		logger.info(getFullUrl(req));
-		logger.info(req.body.author);
-		News.create({
-			heading: req.body.heading,
-			shortDescription: req.body.shortDescription,
-			content: req.body.content,
-			imageUrl: req.body.imageUrl,
-			addDate: req.body.addDate,
-			author: req.body.author,
-			sourceUrl: req.body.sourceUrl,
-			source: req.body.source
-		}, function (err, articles) {
-			if (err) {
-				res.send(err);
-			}
+	app.put('/news/:id', putNews);
 
-			News.find(function (err, articles) {
-				if (err) {
-					res.send(err);
-				}
-				res.json(articles);
-			});
-		});
-	});
+	app.delete('/news/:id', deleteNews);
 
-	app.put('/news/:id', function (req, res) {
-		logger.info(getFullUrl(req));
-		let id = req.params.id;
-		var data = {
-			heading: req.body.heading,
-			shortDescription: req.body.shortDescription,
-			content: req.body.content,
-			imageUrl: req.body.imageUrl,
-			addDate: req.body.addDate,
-			author: req.body.author,
-			sourceUrl: req.body.sourceUrl,
-			source: req.body.source
-		}
-
-		// save the user
-		News.findByIdAndUpdate(id, data, function (err, news) {
-			if (err)
-				throw err;
-
-			res.send('Successfully! Article updated - ' + news._id);
-		});
-	});
-
-	app.delete('/news/:id', function (req, res) {
-		logger.info(getFullUrl(req));
-		let id = req.params.id;
-		isLoggedIn(req, res, function () {
-			News.remove({
-				_id: id
-			}, function (err) {
-				if (err)
-					res.send(err);
-				else
-					res.send('Successfully! Article has been Deleted.');
-			});
-		});
-	});
-
-	app.get('*', function (req, res) {
-		logger.info(getFullUrl(req));
-		throw new Error('Page not found');
-	});
+	app.get('*', otherPages);
 };
 
 function isLoggedIn(req, res, next) {
