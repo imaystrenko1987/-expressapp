@@ -9,9 +9,19 @@ let chai = require('chai');
 let chaiHttp = require('chai-http');
 let server = require('../index');
 let should = chai.should();
+let expect = chai.expect;
 
 
 chai.use(chaiHttp);
+chai.use(function (chai, utils) {
+    var Assertion = chai.Assertion;
+  
+    Assertion.addMethod('articleHas', function (expected, idKey) {
+      var obj = this._obj;
+      new Assertion(obj[idKey]).to.be.a('string');
+      new Assertion(obj).to.have.property(idKey, expected[idKey]);
+    });
+  });
 
 describe('News', () => {
     beforeEach((done) => {
@@ -92,10 +102,10 @@ describe('News', () => {
                     .end((err, res) => {
                         res.should.have.status(200);
                         res.body.should.be.a('object');
-                        res.body.should.have.property('heading');
-                        res.body.should.have.property('content');
-                        res.body.should.have.property('imageUrl');
-                        res.body.should.have.property('author');
+                        expect(article).to.be.articleHas(res.body, 'heading');
+                        expect(article).to.be.articleHas(res.body, 'content');
+                        expect(article).to.be.articleHas(res.body, 'imageUrl');
+                        expect(article).to.be.articleHas(res.body, 'author');
                         res.body.should.have.property('_id').eql(article.id);
                         done();
                     });
@@ -113,24 +123,24 @@ describe('News', () => {
                 author: "test author"
             });
             article.save((err, article) => {
-                  chai.request(server)
-                  .put('/news/' + article.id)
-                  .send({
-                    heading: "Test heading 1",
-                    content: "Test content 1",
-                    imageUrl: "",
-                    author: "test author 1"
-                })
-                  .end((err, res) => {
+                chai.request(server)
+                    .put('/news/' + article.id)
+                    .send({
+                        heading: "Test heading 1",
+                        content: "Test content 1",
+                        imageUrl: "",
+                        author: "test author 1"
+                    })
+                    .end((err, res) => {
                         res.should.have.status(200);
                         res.body.should.be.a('object');
                         res.body.message.should.be.eql('Successfully! Article updated - ' + article.id);
-                    done();
-                  });
+                        done();
+                    });
             });
         });
     });
-  
+
     describe('/DELETE/:id article', () => {
         it('it should delete an article by id', (done) => {
             let article = new News({
@@ -140,14 +150,14 @@ describe('News', () => {
                 author: "test author"
             });
             article.save((err, article) => {
-                  chai.request(server)
-                  .delete('/news/' + article.id)
-                  .end((err, res) => {
+                chai.request(server)
+                    .delete('/news/' + article.id)
+                    .end((err, res) => {
                         res.should.have.status(200);
                         res.body.should.be.a('object');
                         res.body.message.should.be.eql('Successfully! Article has been Deleted. Id=' + article.id);
-                    done();
-                  });
+                        done();
+                    });
             });
         });
     });
@@ -155,12 +165,12 @@ describe('News', () => {
     describe('404 page for other routes', () => {
         it('it should return 404 for unknown pages', (done) => {
             chai.request(server)
-                  .get('/testPage/id')
-                  .end((err, res) => {
-                        res.should.have.status(404);
-                        res.body.message.should.be.eql('Nothing found');
+                .get('/testPage/id')
+                .end((err, res) => {
+                    res.should.have.status(404);
+                    res.body.message.should.be.eql('Nothing found');
                     done();
-                  });
+                });
         });
     });
 });

@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha ./src/tests --timeout 10000",
-    "start": "node ./src/index.js"
+    "test": "nyc mocha ./src/tests --timeout 10000",
+    "start": "node ./src/index.js",
+    "only-test": "mocha --inspect-brk ./src/tests --timeout 10000"
   },
   "author": "",
   "license": "ISC",
@@ -19,6 +20,7 @@
     "express": "^4.16.4",
     "express-session": "^1.15.6",
     "mongoose": "^5.4.9",
+    "nyc": "^13.3.0",
     "passport": "^0.4.0",
     "passport-facebook": "^3.0.0",
     "passport-local": "^1.0.0",
